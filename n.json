@@ -1,0 +1,38 @@
+{
+  "mainPage": {
+    "header": {
+      "title": "Hello, World!",
+      "subtitle": "This is a simple example of a JSON file.",
+    },
+    "menu": {
+      "services": {
+        "title": "Services",
+        "items": {
+          "item1": "Service 1",
+          "item2": "Service 2",
+          "item3": "Service 3"
+        }
+      },
+      "about": {
+        "title": "About",
+        "items": {
+          "item1": "About Us",
+          "item2": "Contact Us"
+        }
+      },
+      "Job": {
+        "title": "Job",
+        "items": {
+          "item1": "Job 1",
+          "item2": "Job 2"
+        }
+      }
+    }
+  },
+  "shared": {
+    "buttons": {
+        "ok": "OK",
+        "cancel": "Cancel"
+    }
+  }
+}
