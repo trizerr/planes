@@ -38,10 +38,21 @@ export default function Home() {
     finishedClusters === 0 ||
     flights.length === 0;
 
-  requestIdleCallback(() => {
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
     // when clustering is finished, set isLoading to false
-    setIsLoading(isClustering);
-  });
+    requestIdleCallback(() => {
+      setIsLoading(isClustering);
+    });
+  } else {
+    // Fallback if not supported (SSR or older browsers)
+    setTimeout(() => {
+      setIsLoading(isClustering);
+    }, 0);
+  }
+  //
+  // requestIdleCallback(() => {
+  //   setIsLoading(isClustering);
+  // });
 
   const flightsMemoized = useCallback(
     (clusterer: any) => {
