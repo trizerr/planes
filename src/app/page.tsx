@@ -11,12 +11,7 @@ import {
 } from '@react-google-maps/api';
 import { Stack } from '@mui/system';
 import CloseIcon from './icons/close.svg';
-import {
-  Button,
-  CircularProgress,
-  LinearProgress,
-  Typography,
-} from '@mui/material';
+import { Button, CircularProgress, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { Flight } from '@/app/api/store/tracker/tracker.types';
 
@@ -26,7 +21,9 @@ export default function Home() {
   const flights = useAppSelector(selectFlights);
 
   //Current clicked plane
-  const [selectedFlight, setSelectedFlight] = React.useState<Flight>(null);
+  const [selectedFlight, setSelectedFlight] = React.useState<Flight | null>(
+    null
+  );
 
   const [finishedClusters, setFinishedClusters] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -47,7 +44,7 @@ export default function Home() {
   });
 
   const flightsMemoized = useCallback(
-    (clusterer) => {
+    (clusterer: any) => {
       return flights.map((flight) => {
         //generate url of svg depending on the direction of the flight
         const url =
@@ -58,6 +55,7 @@ export default function Home() {
           <Marker
             icon={{
               url,
+              //@ts-ignore
               scaledSize: { width: 30, height: 30 },
             }}
             onClick={() => setSelectedFlight(flight)}
@@ -98,7 +96,7 @@ export default function Home() {
         <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={5}>
           <MarkerClusterer
             batchSizeIE={30}
-            onClusteringEnd={(e) => {
+            onClusteringEnd={() => {
               setFinishedClusters((prev) => {
                 return prev + 1;
               });
@@ -295,7 +293,7 @@ const VerticalDevider = () => {
   return <Stack width={'2px'} bgcolor={'white'} height={'100%'} mx={'8px'} />;
 };
 
-const generateSvg = (svgCode, angle) => {
+const generateSvg = (svgCode: any, angle: any) => {
   // Ensure the angle is within 0-360 degrees
   angle = angle % 360;
 

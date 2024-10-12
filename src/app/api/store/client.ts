@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { ApiClientRequest } from '@/app/api/store/types';
 
 export const axiosClient = axios.create({
