@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/api/store/store';
 import flightDelayThunks from '@/app/api/store/tracker/tracker.thunks';
 import { selectFlights } from '@/app/api/store/tracker/tracker.selectors';
@@ -9,50 +9,271 @@ import {
   Marker,
   MarkerClusterer,
 } from '@react-google-maps/api';
+import { Stack } from '@mui/system';
+import CloseIcon from './icons/close.svg';
+import {
+  Button,
+  CircularProgress,
+  LinearProgress,
+  Typography,
+} from '@mui/material';
+import { format } from 'date-fns';
+import { Flight } from '@/app/api/store/tracker/tracker.types';
 
 export default function Home() {
   const dispatch = useAppDispatch();
   //select flights information from storage
   const flights = useAppSelector(selectFlights);
 
+  //Current clicked plane
+  const [selectedFlight, setSelectedFlight] = React.useState<Flight>(null);
+
+  const [finishedClusters, setFinishedClusters] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(true);
+
   useEffect(() => {
-    // Fetch flights on component mount
+    // Fetch flights on app initialization
     dispatch(flightDelayThunks.getFlights());
   }, []);
-  return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
-      <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={5}>
-        <MarkerClusterer>
-          {(clusterer) => {
-            return (
-              <>
-                {flights.map((flight) => {
-                  //generate url of svg depending on the direction of the flight
-                  const url =
-                    'data:image/svg+xml;charset=UTF-8;base64,' +
-                    btoa(generateSvg(originalSvg, flight.geography.direction));
 
-                  return (
-                    <Marker
-                      icon={{
-                        url,
-                        scaledSize: { width: 30, height: 30 },
-                      }}
-                      key={flight.aircraft.regNumber}
-                      position={{
-                        lat: flight.geography.latitude,
-                        lng: flight.geography.longitude,
-                      }}
-                      clusterer={clusterer}
-                    />
-                  );
-                })}
-              </>
-            );
-          }}
-        </MarkerClusterer>
-      </GoogleMap>
-    </LoadScript>
+  const isClustering =
+    flights.length > finishedClusters / 3 ||
+    finishedClusters === 0 ||
+    flights.length === 0;
+
+  requestIdleCallback(() => {
+    // when clustering is finished, set isLoading to false
+    setIsLoading(isClustering);
+  });
+
+  const flightsMemoized = useCallback(
+    (clusterer) => {
+      return flights.map((flight) => {
+        //generate url of svg depending on the direction of the flight
+        const url =
+          'data:image/svg+xml;charset=UTF-8;base64,' +
+          btoa(generateSvg(originalSvg, flight.geography.direction));
+
+        return (
+          <Marker
+            icon={{
+              url,
+              scaledSize: { width: 30, height: 30 },
+            }}
+            onClick={() => setSelectedFlight(flight)}
+            key={flight.flight.icaoNumber}
+            position={{
+              lat: flight.geography.latitude,
+              lng: flight.geography.longitude,
+            }}
+            clusterer={clusterer}
+          />
+        );
+      });
+    },
+    [flights]
+  );
+  return (
+    <Stack>
+      {isLoading && (
+        <Stack
+          position={'absolute'}
+          width={'100%'}
+          height={'100%'}
+          zIndex={2}
+          justifyContent={'center'}
+          alignItems={'center'}
+          bgcolor={'rgba(39, 55, 77, 0.5)'}
+        >
+          <CircularProgress
+            variant="indeterminate"
+            value={finishedClusters / flights.length}
+          />
+          <Typography>Loading...</Typography>
+        </Stack>
+      )}
+      <LoadScript
+        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+      >
+        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={5}>
+          <MarkerClusterer
+            batchSizeIE={30}
+            onClusteringEnd={(e) => {
+              setFinishedClusters((prev) => {
+                return prev + 1;
+              });
+            }}
+          >
+            {(clusterer) => {
+              return <>{flightsMemoized(clusterer)}</>;
+            }}
+          </MarkerClusterer>
+        </GoogleMap>
+      </LoadScript>
+      {selectedFlight && (
+        <Stack
+          position={'absolute'}
+          width={'500px'}
+          height={'400px'}
+          bottom={24}
+          left={24}
+          borderRadius={8}
+          bgcolor={'rgba(39, 55, 77, 0.9)'}
+          p={'16px'}
+        >
+          <Stack direction={'row'} justifyContent={'space-between'}>
+            <Typography fontSize={'20px'} lineHeight={'20px'} fontWeight={600}>
+              Aircraft
+            </Typography>
+            <Stack direction={'row'} alignItems={'center'}>
+              <Typography fontSize={'20px'} lineHeight={'20px'} pr={'4px'}>
+                Updated at:{' '}
+                {format(
+                  new Date(selectedFlight.system.updated * 1000),
+                  'MMM dd, HH:mm'
+                )}
+              </Typography>
+              <Button
+                variant={'text'}
+                onClick={() => setSelectedFlight(null)}
+                sx={{
+                  width: '16px',
+                  padding: 0,
+                  minWidth: 0,
+                }}
+              >
+                <CloseIcon />
+              </Button>
+            </Stack>
+          </Stack>
+          <Devider />
+          <Stack direction={'row'}>
+            <Stack spacing={'8px'}>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Reg Number:{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                IcaoCode:{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Arrival:{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Departure:{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Flight:{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Airline:{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Status:{' '}
+              </Typography>
+            </Stack>
+            <VerticalDevider />
+            <Stack spacing={'8px'}>
+              <Typography
+                fontSize={'20px'}
+                fontWeight={500}
+                height={'20px'}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.aircraft.regNumber}{' '}
+              </Typography>
+              <Typography
+                fontSize={'20px'}
+                fontWeight={500}
+                height={'20px'}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.aircraft.icaoCode}{' '}
+              </Typography>
+              <Typography
+                fontSize={'20px'}
+                fontWeight={500}
+                height={'20px'}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.arrival.icaoCode}{' '}
+              </Typography>
+              <Typography
+                fontSize={'20px'}
+                fontWeight={500}
+                height={'20px'}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.departure.icaoCode}{' '}
+              </Typography>
+              <Typography
+                fontSize={'20px'}
+                fontWeight={500}
+                height={'20px'}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.flight.icaoNumber}{' '}
+              </Typography>
+              <Typography
+                fontSize={'20px'}
+                fontWeight={500}
+                height={'20px'}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.airline.icaoCode}{' '}
+              </Typography>
+              <Typography
+                fontSize={'20px'}
+                height={'20px'}
+                fontWeight={500}
+                lineHeight={'20px'}
+              >
+                {selectedFlight.status}{' '}
+              </Typography>
+            </Stack>
+          </Stack>
+          <Devider />
+          <Stack direction={'row'}>
+            <Stack spacing={'8px'}>
+              <Typography
+                fontSize={'20px'}
+                lineHeight={'20px'}
+                fontWeight={600}
+              >
+                Position{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Latitude: {selectedFlight.geography.latitude}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Longitude: {selectedFlight.geography.longitude}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Direction: {selectedFlight.geography.direction}
+              </Typography>
+            </Stack>
+            <VerticalDevider />
+            <Stack spacing={'8px'}>
+              <Typography
+                fontSize={'20px'}
+                lineHeight={'20px'}
+                fontWeight={600}
+              >
+                Speed{' '}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Horizontal: {selectedFlight.speed.horizontal}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Vertical: {selectedFlight.speed.vspeed}
+              </Typography>
+              <Typography fontSize={'20px'} lineHeight={'20px'}>
+                Altitude: {selectedFlight.geography.altitude}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      )}
+    </Stack>
   );
 }
 
@@ -64,6 +285,14 @@ const containerStyle = {
 const center = {
   lat: 50.450001,
   lng: 30.523333,
+};
+
+const Devider = () => {
+  return <Stack height={'2px'} bgcolor={'white'} width={'100%'} my={'8px'} />;
+};
+
+const VerticalDevider = () => {
+  return <Stack width={'2px'} bgcolor={'white'} height={'100%'} mx={'8px'} />;
 };
 
 const generateSvg = (svgCode, angle) => {

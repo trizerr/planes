@@ -17,6 +17,7 @@
     "@reduxjs/toolkit": "^2.2.7",
     "@vis.gl/react-google-maps": "^1.2.0",
     "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "next": "^14.2.13",
     "prettier": "^3.3.3",

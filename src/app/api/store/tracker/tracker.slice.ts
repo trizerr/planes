@@ -13,7 +13,7 @@ export const trackerSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(trackerThunks.getFlights.fulfilled, (state, action) => {
-      state.flights = action.payload.slice(0, 100);
+      state.flights = action.payload.slice(0, 1000);
     });
     builder.addCase(trackerThunks.getFlights.rejected, (state, action) => {
       state.error = action.payload;

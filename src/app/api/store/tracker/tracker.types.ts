@@ -1,7 +1,9 @@
 export type Flight = {
   geography: {
     latitude: number;
+    direction: number;
     longitude: number;
+    altitude: number;
   };
   flight: {
     iataNumber: string;
@@ -16,11 +18,23 @@ export type Flight = {
     iataCode: string;
     icaoCode: string;
   };
+  airline: {
+    iataCode: string;
+    icaoCode: string;
+  };
   aircraft: {
     registration: string;
     icaoCode: string;
     icao24: string;
     regNumber: string;
+  };
+  speed: {
+    horizontal: number;
+    isGround: number;
+    vspeed: number;
+  };
+  system: {
+    updated: number;
   };
   status: string;
 };

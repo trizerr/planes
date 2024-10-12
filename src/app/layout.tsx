@@ -25,9 +25,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const disableAlertScript = `
+      // Override the alert function
+      window.alert = function() {
+        // Suppress alert - do nothing
+      };
+    `;
   return (
     <Providers>
       <html lang="en">
+        <head>
+          {/* Inject the script to override alert before other scripts */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: disableAlertScript,
+            }}
+          />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
