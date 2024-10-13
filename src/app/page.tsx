@@ -38,10 +38,14 @@ export default function Home() {
     finishedClusters === 0 ||
     flights.length === 0;
 
+  console.log('isClustering', isClustering);
+  console.log('finishedClusters', finishedClusters);
+  console.log('flights.length', flights.length);
+
   useEffect(() => {
-    console.log('isClustering', isClustering);
-    console.log('finishedClusters', finishedClusters);
-    console.log('flights.length', flights.length);
+    console.log('isClustering!', isClustering);
+    console.log('finishedClusters!', finishedClusters);
+    console.log('flights.length!', flights.length);
     setTimeout(() => {
       console.log('isClustering timeout', isClustering);
       setIsLoading(isClustering);
@@ -106,6 +110,7 @@ export default function Home() {
           <MarkerClusterer
             batchSizeIE={30}
             onClusteringEnd={() => {
+              console.log('onClusteringEnd');
               setFinishedClusters((prev) => {
                 return prev + 1;
               });
