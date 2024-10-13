@@ -34,7 +34,9 @@ export default function Home() {
   }, []);
 
   const isClustering =
-    flights.length > finishedClusters / 3 ||
+    (process.env.NODE_ENV === 'development'
+      ? flights.length > finishedClusters / 3
+      : flights.length > finishedClusters) ||
     finishedClusters === 0 ||
     flights.length === 0;
 
