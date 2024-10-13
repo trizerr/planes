@@ -38,17 +38,11 @@ export default function Home() {
     finishedClusters === 0 ||
     flights.length === 0;
 
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    // when clustering is finished, set isLoading to false
-    requestIdleCallback(() => {
-      setIsLoading(isClustering);
-    });
-  } else {
-    // Fallback if not supported (SSR or older browsers)
+  useEffect(() => {
     setTimeout(() => {
       setIsLoading(isClustering);
     }, 0);
-  }
+  }, [isClustering]);
   //
   // requestIdleCallback(() => {
   //   setIsLoading(isClustering);
