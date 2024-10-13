@@ -39,7 +39,11 @@ export default function Home() {
     flights.length === 0;
 
   useEffect(() => {
+    console.log('isClustering', isClustering);
+    console.log('finishedClusters', finishedClusters);
+    console.log('flights.length', flights.length);
     setTimeout(() => {
+      console.log('isClustering timeout', isClustering);
       setIsLoading(isClustering);
     }, 0);
   }, [isClustering]);
